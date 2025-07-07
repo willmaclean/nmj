@@ -1,184 +1,183 @@
-# No More Jockeys: Multi-LLM Game Implementation
+# NMJ - No More Jokes
 
-A complete implementation of the "No More Jockeys" game where 4 Claude AI agents compete against each other in real-time.
+A multiplayer party game where AI agents try to answer questions seriously while one tries to be funny. Built with Next.js and FastAPI.
 
-## Game Rules
+## Overview
 
-1. Players take turns naming a real person and declaring a category they belong to
-2. That category becomes banned for all future turns
-3. Players cannot name someone who belongs to any banned category
-4. Categories must be objective and verifiable
-5. Players are eliminated if they name someone from a banned category
+NMJ is a party game where:
+- Players submit questions
+- AI agents (powered by Claude) provide answers
+- Most agents try to answer seriously, but one secret "Joker" tries to be funny
+- Players vote on which answer they think is the joke
+- Points are awarded for correct guesses and fooling other players
 
 ## Architecture
 
-- **Backend**: Python FastAPI with LangChain for LLM orchestration
-- **Frontend**: React with Next.js
-- **LLM**: Anthropic Claude (Haiku for cost efficiency)
-- **Deployment**: Vercel serverless functions
+### Frontend (Next.js)
+- Real-time game interface
+- WebSocket connection for live updates
+- Responsive design for mobile and desktop
+- Located in `/frontend`
 
-## Project Structure
+### Backend (FastAPI)
+- Game state management
+- AI agent orchestration using Anthropic's Claude API
+- WebSocket support for real-time gameplay
+- Located in `/backend`
 
-```
-no-more-jockeys/
-├── backend/
-│   ├── api/
-│   │   ├── __init__.py
-│   │   ├── main.py          # FastAPI application
-│   │   ├── agents.py        # LLM agents and game orchestrator
-│   │   ├── game_state.py    # Game state management
-│   │   └── prompts.py       # LLM prompts
-│   ├── requirements.txt
-│   └── vercel.json
-├── frontend/
-│   ├── pages/
-│   │   └── index.js         # Main game page
-│   ├── components/
-│   │   └── GameBoard.js     # Game display component
-│   ├── package.json
-│   └── next.config.js
-└── README.md
-```
-
-## Quick Start
+## Setup
 
 ### Prerequisites
-
-- Python 3.9+
 - Node.js 18+
+- Python 3.9+
 - Anthropic API key
 
-### Single Command Setup
+### Local Development
 
-1. **Set your API key:**
-   ```bash
-   export ANTHROPIC_API_KEY="your-anthropic-api-key-here"
-   # On Windows (Command Prompt), use:
-   # set ANTHROPIC_API_KEY="your-anthropic-api-key-here"
-   ```
-
-2. **Install and start everything:**
-   ```bash
-   npm install
-   npm run dev
-   ```
-
-This will automatically:
-- Set up Python virtual environment (if needed)
-- Install all backend/frontend dependencies (if needed)
-- Start both servers concurrently
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Docs:** http://localhost:8000/docs
-
-Press `Ctrl+C` to stop both servers.
-
-**Note for Windows users:** If you encounter issues with the `npm run dev` command, you may need to run the backend and frontend separately:
+1. Clone the repository:
 ```bash
-# Terminal 1 - Backend
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn api.main:app --reload --port 8000
+git clone https://github.com/willmaclean/nmj.git
+cd nmj
+```
 
-# Terminal 2 - Frontend  
+2. Set up environment variables:
+```bash
+# Create .env file in backend directory
+echo "ANTHROPIC_API_KEY=your-api-key-here" > backend/.env
+```
+
+3. Install dependencies:
+```bash
+# Frontend
 cd frontend
 npm install
+
+# Backend
+cd ../backend
+pip install -r requirements.txt
+```
+
+4. Run the development servers:
+```bash
+# From root directory
+./start.sh
+
+# Or run separately:
+# Backend: ./start_backend.sh
+# Frontend: ./start_frontend.sh
+```
+
+5. Open http://localhost:3000
+
+## Deployment
+
+### Frontend (Vercel)
+
+1. Import the repository on [Vercel](https://vercel.com)
+2. Set the root directory to `frontend`
+3. Add environment variable:
+   - `NEXT_PUBLIC_API_URL` = Your backend API URL (e.g., `https://your-backend.vercel.app`)
+
+### Backend (Vercel)
+
+The backend is also configured for Vercel deployment:
+
+1. Deploy the backend separately on Vercel
+2. Set the root directory to `backend`
+3. Add environment variable:
+   - `ANTHROPIC_API_KEY` = Your Anthropic API key
+
+### Adding the Anthropic API Key to Vercel
+
+1. Go to your Vercel project dashboard
+2. Navigate to Settings → Environment Variables
+3. Add a new variable:
+   - **Name**: `ANTHROPIC_API_KEY`
+   - **Value**: Your Anthropic API key (starts with `sk-ant-api03-...`)
+   - **Environment**: Select all (Production, Preview, Development)
+4. Click "Save"
+5. Redeploy your backend for the changes to take effect
+
+## Environment Variables
+
+#### Backend
+- `ANTHROPIC_API_KEY` - Required for AI agents (get from https://console.anthropic.com/)
+
+#### Frontend
+- `NEXT_PUBLIC_API_URL` - Backend API endpoint (defaults to http://localhost:8000)
+
+## Game Flow
+
+1. **Create/Join Game**: Players enter a game code or create a new game
+2. **Submit Questions**: Each player submits a question
+3. **AI Answers**: AI agents generate answers (one is the secret joker)
+4. **Voting**: Players vote on which answer is the joke
+5. **Scoring**: Points awarded based on correct guesses
+6. **Next Round**: Continues until all questions are answered
+
+## Scoring System
+
+- **Correct Guess**: 2 points for identifying the joker
+- **Fooling Players**: 1 point for each player who incorrectly votes for your serious answer
+- **Joker Success**: 1 point for each player who doesn't identify you as the joker
+
+## Tech Stack
+
+- **Frontend**: Next.js, React, Socket.io-client
+- **Backend**: FastAPI, Python 3.9+, Anthropic Claude API
+- **Deployment**: Vercel
+- **Real-time**: WebSockets
+
+## Development
+
+### Project Structure
+```
+nmj/
+├── frontend/          # Next.js frontend
+│   ├── pages/        # Page components
+│   ├── components/   # Reusable components
+│   └── vercel.json   # Vercel configuration
+├── backend/          # FastAPI backend
+│   ├── api/          # API endpoints and game logic
+│   │   ├── main.py   # FastAPI app and routes
+│   │   ├── game_state.py  # Game state management
+│   │   ├── agents.py      # AI agent logic
+│   │   └── prompts.py     # AI prompts
+│   └── vercel.json   # Vercel configuration
+└── README.md         # This file
+```
+
+### API Endpoints
+
+- `POST /create-game` - Create a new game
+- `POST /join-game` - Join an existing game
+- `GET /game/{game_id}/state` - Get current game state
+- `WebSocket /ws/{game_id}` - Real-time game updates
+
+## Quick Start Commands
+
+```bash
+# Install everything
+npm install
+
+# Run both frontend and backend
 npm run dev
+
+# Run individually
+npm run dev:frontend
+npm run dev:backend
+
+# Clean build artifacts
+npm run clean
 ```
-
-### Alternative Commands
-
-```bash
-# Start individual services
-npm run dev:backend    # Backend only
-npm run dev:frontend   # Frontend only
-
-# Setup commands
-npm run install        # Install all dependencies
-npm run clean          # Clean all build artifacts
-```
-
-## Deployment to Vercel
-
-### Backend Deployment
-
-1. Install Vercel CLI:
-```bash
-npm install -g vercel
-```
-
-2. Deploy backend:
-```bash
-cd backend
-vercel --prod
-```
-
-3. Set environment variables in Vercel dashboard:
-   - Go to your project settings
-   - Add `ANTHROPIC_API_KEY` environment variable
-
-### Frontend Deployment
-
-1. Update API URL in `frontend/pages/index.js`:
-```javascript
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-url.vercel.app'  // Replace with your backend URL
-  : 'http://localhost:8000';
-```
-
-2. Deploy frontend:
-```bash
-cd frontend
-vercel --prod
-```
-
-## Game Features
-
-- **Turn Management**: Sequential turns with automatic advancement
-- **Validation**: Comprehensive category checking with explanations
-- **Auto-play**: Watch LLMs play automatically with 2-second intervals
-- **Error Handling**: Graceful handling of API failures
-- **Game State**: Complete history and banned category tracking
-- **Visual Feedback**: Clear UI showing game progression and eliminations
-
-## Cost Optimization
-
-- Uses Claude Haiku model (~$0.25 per 1M tokens)
-- Average game: ~50 turns × 2 API calls × 500 tokens = 50K tokens ≈ $0.0125
-- Efficient prompting to minimize token usage
-- Caching opportunities for person information
-
-## API Endpoints
-
-- `POST /api/game/create` - Create new game instance
-- `POST /api/game/turn` - Execute one turn
-- `GET /api/game/{game_id}/state` - Get current game state
-
-## Game Strategy
-
-The AI agents employ various strategies:
-- **Early game**: Use narrow categories to maintain flexibility
-- **Mid game**: Target opponents by banning categories they might rely on
-- **Late game**: Carefully remember all banned categories
-- **Safe picks**: Historical figures with limited category memberships
-- **Risky picks**: Modern celebrities who belong to many categories
-
-## Development Notes
-
-- Game state is stored in memory (use Redis for production scaling)
-- LLM responses are parsed as JSON with fallback handling
-- Comprehensive validation prevents invalid moves
-- Auto-play feature enables autonomous gameplay demonstration
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test locally
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
