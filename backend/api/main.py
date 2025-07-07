@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, Optional
 import os
 from .agents import GameOrchestrator
 
@@ -17,7 +16,7 @@ app.add_middleware(
 )
 
 # Store game instances (in production, use Redis)
-games: Dict[str, GameOrchestrator] = {}
+games: dict[str, GameOrchestrator] = {}
 
 class GameAction(BaseModel):
     game_id: str

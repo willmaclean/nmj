@@ -1,4 +1,3 @@
-from typing import List, Dict, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
@@ -11,28 +10,28 @@ class Move:
     reasoning: str
     timestamp: datetime
     valid: bool = True
-    violations: List[str] = field(default_factory=list)
+    violations: list[str] = field(default_factory=list)
 
 @dataclass
 class Player:
     id: int
     name: str
     active: bool = True
-    elimination_reason: Optional[str] = None
-    moves: List[Move] = field(default_factory=list)
+    elimination_reason: str | None = None
+    moves: list[Move] = field(default_factory=list)
 
 @dataclass
 class GameState:
-    players: List[Player]
-    banned_categories: List[Dict[str, str]]  # [{"category": "presidents", "banned_by": "Obama"}]
-    moves: List[Move]
+    players: list[Player]
+    banned_categories: list[dict[str, str]]  # [{"category": "presidents", "banned_by": "Obama"}]
+    moves: list[Move]
     current_player_index: int = 0
     game_id: str = ""
     
-    def get_active_players(self) -> List[Player]:
+    def get_active_players(self) -> list[Player]:
         return [p for p in self.players if p.active]
     
-    def get_current_player(self) -> Optional[Player]:
+    def get_current_player(self) -> Player | None:
         active_players = self.get_active_players()
         if not active_players:
             return None

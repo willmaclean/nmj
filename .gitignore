@@ -2,3 +2,6 @@ node_modules
 .envrc
 .env
 .env.local
+.next
+.vercel
+__pycache__

@@ -1,13 +1,12 @@
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 import json
-from typing import Dict, List, Tuple, Optional
 import os
 from .prompts import *
 from .game_state import GameState, Move, Player
 from datetime import datetime
 
-def _parse_json_response(response_content: str) -> Dict:
+def _parse_json_response(response_content: str) -> dict:
     """Extracts and parses JSON from a string that might contain extra text."""
     content = response_content.strip()
     
@@ -46,7 +45,7 @@ class JockeyAgent:
         )
         self.system_prompt = PLAYER_SYSTEM_PROMPT.format(player_id=player_id)
     
-    def take_turn(self, game_state: GameState) -> Dict:
+    def take_turn(self, game_state: GameState) -> dict:
         """Generate a move based on current game state"""
         banned_cats = "\n".join([
             f"- {b['category']} (banned when {b['banned_by']} was named)"
@@ -102,7 +101,7 @@ class ValidatorAgent:
             max_tokens=300
         )
     
-    def get_person_info(self, person: str) -> Dict:
+    def get_person_info(self, person: str) -> dict:
         """Get comprehensive info about a person"""
         messages = [
             SystemMessage(content="You are a factual information provider."),
@@ -117,7 +116,7 @@ class ValidatorAgent:
             print(f"Person info response content was: '{response.content}'")
             return {"error": f"Could not parse person info: {str(e)}"}
     
-    def validate_move(self, person: str, banned_categories: List[Dict]) -> Tuple[bool, List[str], Dict]:
+    def validate_move(self, person: str, banned_categories: list[dict]) -> tuple[bool, list[str], dict]:
         """Check if person violates any banned categories"""
         if not banned_categories:
             return True, [], {}
@@ -163,7 +162,7 @@ class GameOrchestrator:
             moves=[]
         )
     
-    def play_turn(self) -> Dict:
+    def play_turn(self) -> dict:
         """Execute one turn of the game"""
         current_player = self.game_state.get_current_player()
         
@@ -214,6 +213,6 @@ class GameOrchestrator:
             "game_state": self.game_state.to_dict()
         }
     
-    def _get_winner(self) -> Optional[int]:
+    def _get_winner(self) -> int | None:
         active = self.game_state.get_active_players()
         return active[0].id if len(active) == 1 else None
