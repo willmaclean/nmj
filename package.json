@@ -1,0 +1,30 @@
+{
+  "name": "no-more-jockeys",
+  "version": "1.0.0",
+  "description": "Multi-LLM No More Jockeys game implementation",
+  "scripts": {
+    "dev": "npm run install:check && concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "cd backend && (test -d venv || python3 -m venv venv) && (. venv/bin/activate && pip install -q -r requirements.txt && uvicorn api.main:app --reload --port 8000)",
+    "dev:frontend": "cd frontend && (test -d node_modules || npm install) && npm run dev",
+    "install": "npm-run-all install:backend install:frontend",
+    "install:check": "npm run install:backend:check && npm run install:frontend:check",
+    "install:backend": "cd backend && python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt",
+    "install:backend:check": "cd backend && (test -d venv || npm run install:backend)",
+    "install:frontend": "cd frontend && npm install",
+    "install:frontend:check": "cd frontend && (test -d node_modules || npm install)",
+    "clean": "rm -rf backend/venv frontend/node_modules backend.log frontend.log"
+  },
+  "keywords": [
+    "ai",
+    "game",
+    "llm",
+    "anthropic",
+    "claude"
+  ],
+  "author": "No More Jockeys Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "npm-run-all": "^4.1.5"
+  }
+}
