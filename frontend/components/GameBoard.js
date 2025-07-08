@@ -131,6 +131,9 @@ export default function GameBoard({ gameState }) {
           padding: 20px;
           border-radius: 20px;
           box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
         }
 
         .player-arena {
