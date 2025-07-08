@@ -2,7 +2,13 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 import json
 import os
-from .prompts import *
+from .prompts import (
+    PLAYER_SYSTEM_PROMPT,
+    PLAYER_TURN_PROMPT,
+    PERSON_INFO_PROMPT,
+    VALIDATOR_CHECK_PROMPT,
+    VALIDATOR_SYSTEM_PROMPT
+)
 from .game_state import GameState, Move, Player
 from datetime import datetime
 
