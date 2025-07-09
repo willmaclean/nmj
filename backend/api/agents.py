@@ -51,8 +51,9 @@ class JockeyAgent:
         )
         self.system_prompt = PLAYER_SYSTEM_PROMPT.format(player_id=player_id)
     
-    def take_turn(self, game_state: GameState) -> dict:
-        """Generate a move based on current game state"""
+    def take_turn(self, game_state: GameState, feedback: str = None) -> dict:
+        """Generate a move based on current game state.
+        Optionally include feedback from a previous invalid attempt."""
         banned_cats = "\n".join([
             f"- {b['category']} (banned when {b['banned_by']} was named)"
             for b in game_state.banned_categories
@@ -67,12 +68,15 @@ class JockeyAgent:
         eliminated = [f"{p.id} ({p.elimination_reason})" 
                      for p in game_state.players if not p.active]
         
+        # Add feedback if this is a retry attempt
+        feedback_text = f"\n\nPREVIOUS ATTEMPT FEEDBACK: {feedback}\nPlease choose a different person who does NOT fall into the banned categories." if feedback else ""
+        
         turn_prompt = PLAYER_TURN_PROMPT.format(
             banned_categories=banned_cats,
             recent_moves=recent_moves,
             active_players=active_players,
             eliminated_players=eliminated or "None"
-        )
+        ) + feedback_text
         
         messages = [
             SystemMessage(content=self.system_prompt),
@@ -157,33 +161,126 @@ class ValidatorAgent:
             return True, [], {"error": f"Validation parsing failed: {str(e)}"}
 
 class GameOrchestrator:
-    def __init__(self):
-        self.agents = {
-            i: JockeyAgent(player_id=i) for i in range(1, 5)
-        }
+    def __init__(self, human_player_name: str = None, ai_retry_attempts: int = 2):
+        self.human_player_name = human_player_name
+        self.has_human = human_player_name is not None
+        self.ai_retry_attempts = ai_retry_attempts  # Number of retry attempts for AI players
+        
+        if self.has_human:
+            # Human is player 1, AI agents are 2-4
+            self.agents = {
+                i: JockeyAgent(player_id=i) for i in range(2, 5)
+            }
+            self.game_state = GameState(
+                players=[
+                    Player(id=1, name=human_player_name, is_human=True),
+                    Player(id=2, name="Claude-2", is_human=False),
+                    Player(id=3, name="Claude-3", is_human=False),
+                    Player(id=4, name="Claude-4", is_human=False)
+                ],
+                banned_categories=[],
+                moves=[]
+            )
+        else:
+            # All AI agents
+            self.agents = {
+                i: JockeyAgent(player_id=i) for i in range(1, 5)
+            }
+            self.game_state = GameState(
+                players=[Player(id=i, name=f"Claude-{i}", is_human=False) for i in range(1, 5)],
+                banned_categories=[],
+                moves=[]
+            )
+        
         self.validator = ValidatorAgent()
-        self.game_state = GameState(
-            players=[Player(id=i, name=f"Claude-{i}") for i in range(1, 5)],
-            banned_categories=[],
-            moves=[]
-        )
+        self.pending_human_turn = False
     
-    def play_turn(self) -> dict:
+    def play_turn(self, human_move: dict = None) -> dict:
         """Execute one turn of the game"""
         current_player = self.game_state.get_current_player()
         
         if not current_player:
             return {"error": "Game over", "winner": self._get_winner()}
         
-        # Get move from agent
-        agent = self.agents[current_player.id]
-        move_data = agent.take_turn(self.game_state)
+        # Handle human player turn
+        if current_player.is_human:
+            if human_move is None:
+                self.pending_human_turn = True
+                return {
+                    "waiting_for_human": True,
+                    "current_player": current_player.id,
+                    "player_name": current_player.name,
+                    "game_state": self.game_state.to_dict()
+                }
+            else:
+                # Process human move
+                move_data = {
+                    "person": human_move.get("person", ""),
+                    "category": human_move.get("category", ""),
+                    "reasoning": human_move.get("reasoning", "Human player move")
+                }
+                self.pending_human_turn = False
+        else:
+            # AI agent turn with retry logic
+            agent = self.agents[current_player.id]
+            
+            # First attempt
+            move_data = agent.take_turn(self.game_state)
+            is_valid, violations, explanations = self.validator.validate_move(
+                move_data["person"],
+                self.game_state.banned_categories
+            )
+            
+            # If invalid and this is an AI player, allow configurable retries
+            if not is_valid:
+                print(f"🔄 AI Player {current_player.id} ({current_player.name}) first attempt failed: {violations}")
+                
+                # Track retry attempts
+                current_move = move_data
+                current_valid = is_valid
+                current_violations = violations
+                current_explanations = explanations
+                
+                for retry_num in range(1, self.ai_retry_attempts + 1):
+                    # Generate feedback based on all previous attempts
+                    if retry_num == 1:
+                        feedback = f"Your choice '{current_move['person']}' violated: {', '.join(current_violations)}. Choose someone else."
+                    else:
+                        # For multiple retries, provide comprehensive feedback
+                        feedback = f"Multiple attempts failed. Choose a completely different person who does NOT fall into any banned categories."
+                    
+                    print(f"🔄 AI Player {current_player.id} attempting retry {retry_num}/{self.ai_retry_attempts}...")
+                    
+                    retry_move_data = agent.take_turn(self.game_state, feedback)
+                    retry_valid, retry_violations, retry_explanations = self.validator.validate_move(
+                        retry_move_data["person"],
+                        self.game_state.banned_categories
+                    )
+                    
+                    if retry_valid:
+                        print(f"✅ AI Player {current_player.id} retry {retry_num} succeeded with: {retry_move_data['person']}")
+                        move_data = retry_move_data
+                        is_valid = retry_valid
+                        violations = retry_violations
+                        explanations = retry_explanations
+                        break
+                    else:
+                        print(f"❌ AI Player {current_player.id} retry {retry_num} failed: {retry_violations}")
+                        # Update for next iteration or final failure
+                        current_move = retry_move_data
+                        current_violations = retry_violations
+                
+                # If all retries failed
+                if not is_valid:
+                    print(f"💀 AI Player {current_player.id} exhausted all {self.ai_retry_attempts} retries. Player will be eliminated.")
         
-        # Validate move
-        is_valid, violations, explanations = self.validator.validate_move(
-            move_data["person"],
-            self.game_state.banned_categories
-        )
+        # For human players, validate move normally (no retries)
+        if current_player.is_human:
+            # Validate move
+            is_valid, violations, explanations = self.validator.validate_move(
+                move_data["person"],
+                self.game_state.banned_categories
+            )
         
         # Create move record
         move = Move(
@@ -216,7 +313,8 @@ class GameOrchestrator:
             "valid": is_valid,
             "violations": violations,
             "explanations": explanations,
-            "game_state": self.game_state.to_dict()
+            "game_state": self.game_state.to_dict(),
+            "waiting_for_human": False
         }
     
     def _get_winner(self) -> int | None:

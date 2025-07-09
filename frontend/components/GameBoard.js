@@ -14,6 +14,7 @@ export default function GameBoard({ gameState }) {
   }, [gameState.current_player]);
 
   const getPlayerEmoji = (player) => {
+    if (player.is_human) return '🎮';
     const emojis = ['🤖', '👨‍💼', '👩‍🎨', '🧑‍🚀'];
     return emojis[player.id - 1] || '🤖';
   };
@@ -42,7 +43,7 @@ export default function GameBoard({ gameState }) {
           return (
             <div 
               key={player.id} 
-              className={`player-character ${!player.active ? 'eliminated' : ''} ${isCurrentPlayer ? 'current-turn' : ''} ${isAnimating ? 'animating' : ''}`}
+              className={`player-character ${!player.active ? 'eliminated' : ''} ${isCurrentPlayer ? 'current-turn' : ''} ${isAnimating ? 'animating' : ''} ${player.is_human ? 'human-player' : ''}`}
               onClick={() => latestMove && setShowReasoningFor(showReasoningFor === player.id ? null : player.id)}
             >
               <div className="character-body">
@@ -193,6 +194,18 @@ export default function GameBoard({ gameState }) {
           border-color: #999;
           opacity: 0.6;
           filter: grayscale(0.8);
+        }
+
+        .player-character.human-player .character-body {
+          border-color: #28a745;
+          background: linear-gradient(145deg, #f8fff9, #e8f5e8);
+          box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+
+        .player-character.human-player.current-turn .character-body {
+          border-color: #20c997;
+          background: linear-gradient(145deg, #f0fff4, #e8f5e8);
+          box-shadow: 0 0 30px rgba(32, 201, 151, 0.6), 0 8px 25px rgba(40, 167, 69, 0.4);
         }
 
         .emoji-face {

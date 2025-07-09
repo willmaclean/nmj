@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import os
 from .agents import GameOrchestrator
 
 app = FastAPI()
@@ -21,26 +20,58 @@ games: dict[str, GameOrchestrator] = {}
 class GameAction(BaseModel):
     game_id: str
 
+class CreateGameRequest(BaseModel):
+    human_player_name: str = None
+
+class HumanMoveRequest(BaseModel):
+    game_id: str
+    person: str
+    category: str
+    reasoning: str = "Human player move"
+
 @app.post("/api/game/create")
-async def create_game():
+async def create_game(request: CreateGameRequest = CreateGameRequest()):
     """Create a new game instance"""
     import uuid
     game_id = str(uuid.uuid4())
-    games[game_id] = GameOrchestrator()
+    games[game_id] = GameOrchestrator(human_player_name=request.human_player_name)
     return {
         "game_id": game_id,
-        "game_state": games[game_id].game_state.to_dict()
+        "game_state": games[game_id].game_state.to_dict(),
+        "has_human": games[game_id].has_human
     }
 
 @app.post("/api/game/turn")
 async def play_turn(action: GameAction):
-    """Play one turn of the game"""
+    """Play one turn of the game (AI only)"""
     if action.game_id not in games:
         raise HTTPException(status_code=404, detail="Game not found")
     
     orchestrator = games[action.game_id]
     result = orchestrator.play_turn()
     
+    return result
+
+@app.post("/api/game/human-move")
+async def make_human_move(move: HumanMoveRequest):
+    """Make a human player move"""
+    if move.game_id not in games:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    orchestrator = games[move.game_id]
+    
+    # Validate it's the human player's turn
+    current_player = orchestrator.game_state.get_current_player()
+    if not current_player or not current_player.is_human:
+        raise HTTPException(status_code=400, detail="Not human player's turn")
+    
+    human_move = {
+        "person": move.person,
+        "category": move.category,
+        "reasoning": move.reasoning
+    }
+    
+    result = orchestrator.play_turn(human_move=human_move)
     return result
 
 @app.get("/api/game/{game_id}/state")

@@ -7,8 +7,12 @@ GAME RULES:
 4. Categories must be objective and verifiable
 5. You lose if you name someone from a banned category or fail to respond
 
+REAL PEOPLE GUIDELINES:
+- Try to choose interesting people, they can be historical figures, celebrities, athletes, etc.
+- Try and be funny and creative with your person choice. Don't be boring!
+
 CREATIVE CATEGORY GUIDELINES:
-- Feel free to be humorous and slightly niche with your categories!
+- Try to be humorous and slightly niche with your categories!
 - Don't just pick the most obvious category (e.g., "actors" for Meryl Streep)
 - Consider creative alternatives like "people whose names rhyme with sheep" or "people who have won an Oscar for playing a real person"
 - Categories can be quirky, specific, or unexpected - as long as they're factually accurate
@@ -16,11 +20,21 @@ CREATIVE CATEGORY GUIDELINES:
 - Balance creativity with strategy - sometimes a weird category is harder for opponents to accidentally violate
 
 STRATEGY TIPS:
-- Early game: Use narrow categories to maintain flexibility
-- Mid game: Target opponents by banning categories they might rely on
-- Late game: Remember ALL banned categories carefully
-- Safe picks: Historical figures with limited category memberships
-- Risky picks: Modern celebrities who belong to many categories
+- Early game (0-4 banned categories): Use narrow categories to maintain flexibility
+- Mid game (5-8 banned categories): Target opponents by banning categories they might rely on
+- Late game (9+ banned categories): Remember ALL banned categories carefully
+
+EXAMPLE MOVES:
+Nelson Mandela - people who have definitely been imprisoned		
+Michaela Strachan - people with surnames shared with Scotland football players		
+Carlos Alberto - South Americans		
+Enya - people with forenames rhyming with countries
+Kevin Na - names with three or fewer letters
+Albert Einstein - vowels beginning each name
+Carol Vorderman - hair longer than chin level
+Ravi Shastri - athletes
+Richard Whiteley - no more people with an identical number of syllables in both first and second names
+
 
 You are Player {player_id}."""
 
@@ -45,7 +59,7 @@ Think strategically:
 
 Remember: You can be creative! Instead of "actors" try "people who have been in a Woody Allen film" or "people whose last name is also a type of bird". Make it interesting!
 
-Respond in this exact JSON format:
+You MUST reply with a single JSON object in this format and **nothing else**:
 {{"person": "Full Name", "category": "specific category description", "reasoning": "strategic explanation"}}"""
 
 VALIDATOR_SYSTEM_PROMPT = """You are a rules judge for No More Jockeys. You must determine if a person belongs to any banned categories.
@@ -73,7 +87,7 @@ For each category, determine if the person belongs to it. Be thorough and consid
 - Edge cases (is a racing driver an athlete?)
 - Multiple nationalities or careers
 
-Respond in JSON:
+You MUST reply with a single JSON object in this format and **nothing else**:
 {{"violations": ["list", "of", "violated", "categories"], "safe": true/false, "explanations": {{"category": "reason"}}}}"""
 
 PERSON_INFO_PROMPT = """Provide factual information about {person} focusing on:
