@@ -1,7 +1,29 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dotenv import load_dotenv
+import os
 from .agents import GameOrchestrator
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Validate required environment variables
+required_env_vars = {
+    "ANTHROPIC_API_KEY": "Anthropic API key is required. Get one from https://console.anthropic.com/"
+}
+
+missing_vars = []
+for var, description in required_env_vars.items():
+    if not os.environ.get(var):
+        missing_vars.append(f"- {var}: {description}")
+
+if missing_vars:
+    error_msg = "Missing required environment variables:\n" + "\n".join(missing_vars)
+    print(f"❌ Configuration Error:\n{error_msg}")
+    print("\n💡 Create a .env file in the backend directory with:")
+    print("ANTHROPIC_API_KEY=your-key-here")
+    raise RuntimeError(error_msg)
 
 app = FastAPI()
 
