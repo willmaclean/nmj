@@ -107,7 +107,7 @@ export default function Home() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>🎭 No More Jockeys - AI Battle</h1>
+        <h1>No More Jockeys - AI Battle</h1>
         <p>Watch AI agents compete or join the battle yourself!</p>
       </header>
       
@@ -116,8 +116,23 @@ export default function Home() {
           {!showPlayerSetup ? (
             <div className="start-screen">
               <div className="start-card">
-                <h2>Ready to Begin?</h2>
-                <p>Choose your game mode:</p>
+
+                
+                {/* Game Rules Section */}
+                <div className="rules-section">
+                  <h3>How to Play</h3>
+                  <ul className="rules-list">
+                    <li><strong>Name a Person</strong> - Choose any real, famous person</li>
+                    <li><strong>Declare Category</strong> - State ONE category they belong to</li>
+                    <li><strong>Category Banned</strong> - That category becomes off-limits forever</li>
+                    <li><strong>Don't Violate</strong> - Avoid naming anyone from banned categories</li>
+                  </ul>
+                  
+                  <div className="strategy-tip">
+                    <strong>Strategy Tip:</strong> Be creative with categories! Instead of "actors" try "people who have been in a Woody Allen film"
+                  </div>
+                </div>
+                <h3>Choose your game mode:</h3>
                 <div className="game-mode-buttons">
                   <button 
                     className="mode-button ai-mode" 
@@ -284,6 +299,62 @@ export default function Home() {
           font-size: 1.1rem;
           margin: 0 0 30px 0;
           line-height: 1.5;
+        }
+
+        .rules-section {
+          background: rgba(255, 255, 255, 0.95);
+          border-radius: 15px;
+          padding: 25px;
+          margin: 20px 0 30px 0;
+          border: 2px solid rgba(255, 107, 53, 0.2);
+          text-align: left;
+        }
+
+        .rules-section h3 {
+          margin: 0 0 20px 0;
+          color: #ff5722;
+          font-size: 1.4rem;
+          text-align: center;
+        }
+
+        .rules-list {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 20px 0;
+          text-align: left;
+        }
+
+        .rules-list li {
+          margin-bottom: 12px;
+          padding-left: 20px;
+          position: relative;
+          line-height: 1.5;
+          text-align: left;
+        }
+
+        .rules-list li::before {
+          content: '•';
+          color: #ff5722;
+          font-size: 1.2em;
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+
+        .rules-list li strong {
+          color: #ff5722;
+          font-weight: 600;
+        }
+
+        .strategy-tip {
+          background: linear-gradient(45deg, #4caf50, #66bb6a);
+          color: white;
+          padding: 15px;
+          border-radius: 10px;
+          text-align: center;
+          font-size: 0.9rem;
+          line-height: 1.4;
+          box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
         }
 
         .game-mode-buttons {
@@ -540,6 +611,18 @@ export default function Home() {
           .controls {
             flex-direction: column;
             gap: 15px;
+          }
+
+          .rules-list li {
+            margin-bottom: 10px;
+            padding-left: 18px;
+            text-align: left;
+          }
+          
+          .rules-section {
+            padding: 20px;
+            margin: 15px 0 25px 0;
+            text-align: left;
           }
         }
       `}</style>

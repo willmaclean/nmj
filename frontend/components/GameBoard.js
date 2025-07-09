@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 export default function GameBoard({ gameState }) {
   const [animatingPlayer, setAnimatingPlayer] = useState(null);
   const [showReasoningFor, setShowReasoningFor] = useState(null);
+  const [showRules, setShowRules] = useState(false);
 
   // Trigger animation when current player changes
   useEffect(() => {
@@ -33,6 +34,47 @@ export default function GameBoard({ gameState }) {
 
   return (
     <div className="game-arena">
+      {/* Floating Rules Button */}
+      <div className="rules-float-container">
+        <button 
+          className="rules-float-button"
+          onMouseEnter={() => setShowRules(true)}
+          onMouseLeave={() => setShowRules(false)}
+        >
+          📖 Rules
+        </button>
+        {showRules && (
+          <div className="rules-tooltip">
+            <div className="rules-tooltip-header">🎯 Game Rules</div>
+            <div className="rules-list">
+              <div className="rule-line">
+                <span className="rule-number">1</span>
+                <span className="rule-desc">Name a real, famous person</span>
+              </div>
+              <div className="rule-line">
+                <span className="rule-number">2</span>
+                <span className="rule-desc">Declare ONE category they belong to</span>
+              </div>
+              <div className="rule-line">
+                <span className="rule-number">3</span>
+                <span className="rule-desc">That category becomes permanently banned</span>
+              </div>
+              <div className="rule-line">
+                <span className="rule-number">4</span>
+                <span className="rule-desc">Don't name anyone from banned categories</span>
+              </div>
+              <div className="rule-line">
+                <span className="rule-number">5</span>
+                <span className="rule-desc">Last player standing wins!</span>
+              </div>
+            </div>
+            <div className="rules-tip">
+              💡 <strong>Tip:</strong> Be creative with categories!
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Main Player Arena */}
       <div className="player-arena">
         {gameState.players.map(player => {
@@ -459,6 +501,114 @@ export default function GameBoard({ gameState }) {
           font-weight: bold;
         }
 
+        /* Floating Rules */
+        .rules-float-container {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 1000;
+        }
+
+        .rules-float-button {
+          background: linear-gradient(45deg, #4caf50, #66bb6a);
+          color: white;
+          border: none;
+          padding: 12px 16px;
+          border-radius: 25px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .rules-float-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+        }
+
+        .rules-tooltip {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          margin-top: 10px;
+          background: white;
+          border-radius: 15px;
+          padding: 20px;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          border: 2px solid rgba(76, 175, 80, 0.2);
+          width: 320px;
+          animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .rules-tooltip-header {
+          font-size: 1.1rem;
+          font-weight: bold;
+          color: #4caf50;
+          margin-bottom: 15px;
+          text-align: center;
+          border-bottom: 2px solid rgba(76, 175, 80, 0.2);
+          padding-bottom: 10px;
+        }
+
+        .rules-list {
+          margin-bottom: 15px;
+        }
+
+        .rule-line {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          margin-bottom: 8px;
+          padding: 8px;
+          background: rgba(76, 175, 80, 0.05);
+          border-radius: 8px;
+        }
+
+        .rule-number {
+          background: #4caf50;
+          color: white;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+
+        .rule-desc {
+          color: #333;
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+
+        .rules-tip {
+          background: linear-gradient(45deg, #ff9800, #ffc107);
+          color: white;
+          padding: 10px;
+          border-radius: 8px;
+          font-size: 0.85rem;
+          text-align: center;
+          line-height: 1.3;
+        }
+
         /* Responsive design */
         @media (max-width: 768px) {
           .game-arena {
@@ -475,6 +625,21 @@ export default function GameBoard({ gameState }) {
             top: 110%;
             width: 280px;
             max-height: 300px;
+          }
+
+          .rules-float-container {
+            top: 10px;
+            right: 10px;
+          }
+
+          .rules-tooltip {
+            width: 280px;
+            right: -20px;
+          }
+
+          .rules-float-button {
+            padding: 10px 14px;
+            font-size: 0.8rem;
           }
         }
       `}</style>
