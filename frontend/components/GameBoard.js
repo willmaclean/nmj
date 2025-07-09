@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react';
 
-export default function GameBoard({ gameState }) {
+export default function GameBoard({ gameState, darkMode: parentDarkMode }) {
   const [animatingPlayer, setAnimatingPlayer] = useState(null);
   const [showReasoningFor, setShowReasoningFor] = useState(null);
   const [showRules, setShowRules] = useState(false);
+  const [darkMode, setDarkMode] = useState(parentDarkMode || false);
+
+  // Sync with parent dark mode
+  useEffect(() => {
+    if (parentDarkMode !== undefined) {
+      setDarkMode(parentDarkMode);
+    }
+  }, [parentDarkMode]);
 
   // Trigger animation when current player changes
   useEffect(() => {
@@ -33,7 +41,7 @@ export default function GameBoard({ gameState }) {
   };
 
   return (
-    <div className="game-arena">
+    <div className={`game-arena ${darkMode ? 'dark' : ''}`}>
       {/* Floating Rules Button */}
       <div className="rules-float-container">
         <button 
@@ -170,23 +178,35 @@ export default function GameBoard({ gameState }) {
           display: flex;
           gap: 30px;
           min-height: 600px;
-          background: linear-gradient(135deg, #ff6b35, #f7931e, #ff6b35);
-          padding: 20px;
-          border-radius: 20px;
-          box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+          background: #ffffff;
+          padding: 24px;
+          margin-top: 20px;
+          border-radius: 12px;
+          border: 1px solid #e5e5e5;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
+          transition: background-color 0.3s ease, border-color 0.3s ease;
         }
+
+        .game-arena.dark {
+          background: #1f2937;
+          border-color: #374151;
+        }
+
+
 
         .player-arena {
           flex: 2;
           display: grid;
           grid-template-columns: 1fr 1fr;
+          grid-template-rows: 1fr 1fr;
           gap: 20px;
           align-items: center;
           justify-items: center;
           position: relative;
+          width: 100%;
+          height: 100%;
         }
 
         .player-character {
@@ -197,150 +217,206 @@ export default function GameBoard({ gameState }) {
         }
 
         .player-character.current-turn {
-          transform: scale(1.2) translateY(-10px);
+          transform: scale(1.05) translateY(-2px);
           z-index: 10;
         }
 
         .player-character.animating {
-          animation: playerHighlight 0.8s ease-in-out;
+          animation: playerHighlight 0.6s ease-in-out;
         }
 
         @keyframes playerHighlight {
           0% { transform: scale(1); }
-          25% { transform: scale(1.3) translateY(-15px) rotate(5deg); }
-          50% { transform: scale(1.4) translateY(-20px) rotate(-5deg); }
-          75% { transform: scale(1.3) translateY(-15px) rotate(3deg); }
-          100% { transform: scale(1.2) translateY(-10px) rotate(0deg); }
+          50% { transform: scale(1.1) translateY(-4px); }
+          100% { transform: scale(1.05) translateY(-2px); }
         }
 
         .character-body {
-          background: linear-gradient(145deg, #fff, #ffe8e0);
-          border: 4px solid #ff6b35;
-          border-radius: 20px;
+          background: #ffffff;
+          border: 2px solid #e5e5e5;
+          border-radius: 12px;
           padding: 20px;
           text-align: center;
-          box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           min-width: 200px;
           position: relative;
           overflow: visible;
+          transition: all 0.2s ease;
+        }
+
+        .game-arena.dark .character-body {
+          background: #374151;
+          border-color: #4b5563;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .player-character.current-turn .character-body {
-          border-color: #ff4500;
-          background: linear-gradient(145deg, #fff5f0, #ffe8e0);
-          box-shadow: 0 0 30px rgba(255, 69, 0, 0.6), 0 8px 25px rgba(255, 107, 53, 0.4);
+          border-color: #333333;
+          background: #f8f9fa;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .game-arena.dark .player-character.current-turn .character-body {
+          border-color: #6b7280;
+          background: #4b5563;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
         .player-character.eliminated .character-body {
-          background: linear-gradient(145deg, #f5f5f5, #e0e0e0);
-          border-color: #999;
+          background: #f8f9fa;
+          border-color: #d1d5db;
           opacity: 0.6;
-          filter: grayscale(0.8);
+          filter: grayscale(1);
+        }
+
+        .game-arena.dark .player-character.eliminated .character-body {
+          background: #2d3748;
+          border-color: #4a5568;
         }
 
         .player-character.human-player .character-body {
-          border-color: #28a745;
-          background: linear-gradient(145deg, #f8fff9, #e8f5e8);
-          box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+          border-color: #6b7280;
+          background: #ffffff;
+        }
+
+        .game-arena.dark .player-character.human-player .character-body {
+          border-color: #9ca3af;
+          background: #374151;
         }
 
         .player-character.human-player.current-turn .character-body {
-          border-color: #20c997;
-          background: linear-gradient(145deg, #f0fff4, #e8f5e8);
-          box-shadow: 0 0 30px rgba(32, 201, 151, 0.6), 0 8px 25px rgba(40, 167, 69, 0.4);
+          border-color: #000000;
+          background: #f8f9fa;
+        }
+
+        .game-arena.dark .player-character.human-player.current-turn .character-body {
+          border-color: #d1d5db;
+          background: #4b5563;
         }
 
         .emoji-face {
-          font-size: 3rem;
-          margin-bottom: 10px;
+          font-size: 2.5rem;
+          margin-bottom: 12px;
           display: block;
-          animation: float 3s ease-in-out infinite;
+          filter: grayscale(0.8);
         }
 
         .player-character.current-turn .emoji-face {
-          animation: bounce 0.6s ease-in-out infinite alternate;
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
-        }
-
-        @keyframes bounce {
-          0% { transform: translateY(0px) scale(1); }
-          100% { transform: translateY(-8px) scale(1.1); }
+          filter: grayscale(0);
         }
 
         .player-name {
-          font-weight: bold;
-          font-size: 1.1rem;
-          color: #d63031;
-          margin-bottom: 5px;
+          font-weight: 600;
+          font-size: 1rem;
+          color: #1f2937;
+          margin-bottom: 8px;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .player-name {
+          color: #f9fafb;
         }
 
         .player-status {
-          font-size: 0.9rem;
-          font-weight: bold;
-          padding: 4px 8px;
-          border-radius: 12px;
-          margin-bottom: 8px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          padding: 4px 12px;
+          border-radius: 20px;
+          margin-bottom: 12px;
+          background: #f3f4f6;
+          color: #6b7280;
+          border: 1px solid #e5e7eb;
+          transition: all 0.3s ease;
         }
 
-        .player-character:not(.eliminated) .player-status {
-          background: #ff6b35;
-          color: white;
+        .game-arena.dark .player-status {
+          background: #2d3748;
+          color: #9ca3af;
+          border-color: #4a5568;
         }
 
         .player-character.current-turn .player-status {
-          background: #ff4500;
+          background: #1f2937;
           color: white;
-          animation: pulse 1.5s ease-in-out infinite;
+          border-color: #1f2937;
         }
 
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
+        .game-arena.dark .player-character.current-turn .player-status {
+          background: #6b7280;
+          color: white;
+          border-color: #6b7280;
         }
 
         .player-character.eliminated .player-status {
-          background: #999;
-          color: white;
+          background: #f3f4f6;
+          color: #9ca3af;
+          border-color: #e5e7eb;
+        }
+
+        .game-arena.dark .player-character.eliminated .player-status {
+          background: #2d3748;
+          color: #6b7280;
+          border-color: #4a5568;
         }
 
         .move-count {
           font-size: 0.8rem;
-          color: #666;
-          margin-bottom: 10px;
+          color: #6b7280;
+          margin-bottom: 12px;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .move-count {
+          color: #9ca3af;
         }
 
         .latest-move {
-          background: rgba(255, 107, 53, 0.1);
+          background: #f9fafb;
           border-radius: 8px;
-          padding: 8px;
-          margin-top: 10px;
-          border-left: 3px solid #ff6b35;
+          padding: 12px;
+          margin-top: 12px;
+          border-left: 3px solid #e5e7eb;
+          border: 1px solid #f3f4f6;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .latest-move {
+          background: #2d3748;
+          border-color: #4a5568;
+          border-left-color: #4b5563;
         }
 
         .move-text {
-          font-weight: bold;
-          color: #d63031;
+          font-weight: 500;
+          color: #1f2937;
           font-size: 0.9rem;
+          margin-bottom: 4px;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .move-text {
+          color: #f9fafb;
         }
 
         .category-text {
           font-size: 0.8rem;
-          color: #666;
+          color: #6b7280;
           font-style: italic;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .category-text {
+          color: #9ca3af;
         }
 
         .elimination-reason {
-          background: rgba(220, 53, 69, 0.1);
-          border: 1px solid #dc3545;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
           border-radius: 6px;
-          padding: 6px;
+          padding: 8px;
           margin-top: 8px;
           font-size: 0.8rem;
-          color: #dc3545;
+          color: #dc2626;
         }
 
         .reasoning-popup {
@@ -348,61 +424,83 @@ export default function GameBoard({ gameState }) {
           top: -10px;
           left: 110%;
           background: white;
-          border: 2px solid #ff6b35;
+          border: 1px solid #e5e7eb;
           border-radius: 12px;
-          padding: 15px;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+          padding: 16px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
           width: 320px;
           max-height: 400px;
           overflow-y: auto;
           z-index: 100;
-          animation: popIn 0.3s ease-out;
+          animation: popIn 0.2s ease-out;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .reasoning-popup {
+          background: #374151;
+          border-color: #4b5563;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes popIn {
-          0% { opacity: 0; transform: scale(0.8) translateX(-10px); }
+          0% { opacity: 0; transform: scale(0.95) translateX(-5px); }
           100% { opacity: 1; transform: scale(1) translateX(0); }
         }
 
         .reasoning-header {
-          font-weight: bold;
-          color: #ff6b35;
-          margin-bottom: 8px;
-          border-bottom: 1px solid #ffe8e0;
-          padding-bottom: 4px;
+          font-weight: 600;
+          color: #1f2937;
+          margin-bottom: 10px;
+          border-bottom: 1px solid #f3f4f6;
+          padding-bottom: 8px;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .reasoning-header {
+          color: #f9fafb;
+          border-bottom-color: #4b5563;
         }
 
         .reasoning-text {
           font-size: 0.85rem;
           line-height: 1.5;
-          color: #333;
-          margin-bottom: 10px;
+          color: #4b5563;
+          margin-bottom: 12px;
           white-space: pre-wrap;
           word-wrap: break-word;
           max-height: 200px;
           overflow-y: auto;
-          padding: 8px;
-          background: rgba(255, 107, 53, 0.05);
+          padding: 12px;
+          background: #f9fafb;
           border-radius: 6px;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .reasoning-text {
+          color: #d1d5db;
+          background: #2d3748;
         }
 
         .violations {
-          background: rgba(220, 53, 69, 0.1);
+          background: #fef2f2;
           border-radius: 6px;
-          padding: 8px;
+          padding: 12px;
+          border: 1px solid #fecaca;
         }
 
         .violations-header {
-          font-weight: bold;
-          color: #dc3545;
+          font-weight: 600;
+          color: #dc2626;
           font-size: 0.8rem;
-          margin-bottom: 4px;
+          margin-bottom: 6px;
         }
 
         .violation {
           font-size: 0.8rem;
-          color: #dc3545;
-          margin-left: 10px;
+          color: #dc2626;
+          margin-left: 12px;
+          margin-bottom: 2px;
         }
 
         .game-info {
@@ -413,38 +511,55 @@ export default function GameBoard({ gameState }) {
         }
 
         .info-section {
-          background: rgba(255, 255, 255, 0.9);
-          border-radius: 15px;
+          background: #ffffff;
+          border-radius: 8px;
           padding: 20px;
-          border: 2px solid rgba(255, 107, 53, 0.3);
+          border: 1px solid #e5e7eb;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .info-section {
+          background: #374151;
+          border-color: #4b5563;
         }
 
         .info-section h3 {
-          margin: 0 0 15px 0;
-          color: #d63031;
-          font-size: 1.1rem;
+          margin: 0 0 16px 0;
+          color: #1f2937;
+          font-size: 1rem;
+          font-weight: 600;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .info-section h3 {
+          color: #f9fafb;
         }
 
         .stat {
-          padding: 5px 0;
-          font-weight: 500;
-          color: #333;
+          padding: 6px 0;
+          font-weight: 400;
+          color: #4b5563;
+          font-size: 0.9rem;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .stat {
+          color: #d1d5db;
         }
 
         .winner {
-          background: linear-gradient(45deg, #ff6b35, #f7931e);
+          background: #1f2937;
           color: white;
-          padding: 10px;
+          padding: 12px;
           border-radius: 8px;
           text-align: center;
-          font-weight: bold;
-          margin-top: 10px;
-          animation: celebrate 2s ease-in-out infinite;
+          font-weight: 600;
+          margin-top: 12px;
+          transition: background-color 0.3s ease;
         }
 
-        @keyframes celebrate {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
+        .game-arena.dark .winner {
+          background: #6b7280;
         }
 
         .banned-list, .moves-list {
@@ -453,52 +568,89 @@ export default function GameBoard({ gameState }) {
         }
 
         .banned-item {
-          padding: 8px;
-          border-bottom: 1px solid #ffe8e0;
+          padding: 10px;
+          border-bottom: 1px solid #f3f4f6;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          transition: border-color 0.3s ease;
+        }
+
+        .game-arena.dark .banned-item {
+          border-bottom-color: #4b5563;
         }
 
         .category-name {
           font-weight: 500;
-          color: #d63031;
+          color: #1f2937;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .category-name {
+          color: #f9fafb;
         }
 
         .banned-by {
           font-size: 0.8rem;
-          color: #666;
+          color: #6b7280;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .banned-by {
+          color: #9ca3af;
         }
 
         .move-item {
-          padding: 8px;
-          border-bottom: 1px solid #ffe8e0;
-          border-left: 3px solid #ff6b35;
-          margin-bottom: 5px;
+          padding: 10px;
+          border-bottom: 1px solid #f3f4f6;
+          border-left: 3px solid #e5e7eb;
+          margin-bottom: 6px;
           border-radius: 0 6px 6px 0;
+          background: #fafafa;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .move-item {
+          border-bottom-color: #4b5563;
+          border-left-color: #4b5563;
+          background: #2d3748;
         }
 
         .move-item.invalid {
-          border-left-color: #dc3545;
-          background: rgba(220, 53, 69, 0.05);
+          border-left-color: #dc2626;
+          background: #fef2f2;
+        }
+
+        .game-arena.dark .move-item.invalid {
+          background: #2d1b1b;
         }
 
         .move-player {
-          font-weight: bold;
+          font-weight: 500;
           font-size: 0.8rem;
-          color: #ff6b35;
+          color: #6b7280;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .move-player {
+          color: #9ca3af;
         }
 
         .move-details {
           font-size: 0.9rem;
-          color: #333;
-          margin: 2px 0;
+          color: #1f2937;
+          margin: 4px 0;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .move-details {
+          color: #f9fafb;
         }
 
         .move-violation {
           font-size: 0.8rem;
-          color: #dc3545;
-          font-weight: bold;
+          color: #dc2626;
+          font-weight: 500;
         }
 
         /* Floating Rules */
@@ -510,44 +662,62 @@ export default function GameBoard({ gameState }) {
         }
 
         .rules-float-button {
-          background: linear-gradient(45deg, #4caf50, #66bb6a);
+          background: #1f2937;
           color: white;
           border: none;
-          padding: 12px 16px;
-          border-radius: 25px;
+          padding: 10px 16px;
+          border-radius: 8px;
           font-size: 0.9rem;
-          font-weight: 600;
+          font-weight: 500;
           cursor: pointer;
-          box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
           display: flex;
           align-items: center;
           gap: 6px;
+          border: 1px solid #374151;
+        }
+
+        .game-arena.dark .rules-float-button {
+          background: #374151;
+          border-color: #4b5563;
         }
 
         .rules-float-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+          background: #374151;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .game-arena.dark .rules-float-button:hover {
+          background: #4b5563;
         }
 
         .rules-tooltip {
           position: absolute;
           top: 100%;
           right: 0;
-          margin-top: 10px;
+          margin-top: 8px;
           background: white;
-          border-radius: 15px;
+          border-radius: 8px;
           padding: 20px;
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-          border: 2px solid rgba(76, 175, 80, 0.2);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e5e7eb;
           width: 320px;
-          animation: fadeInUp 0.3s ease;
+          animation: fadeInUp 0.2s ease;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .rules-tooltip {
+          background: #374151;
+          border-color: #4b5563;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes fadeInUp {
           from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(8px);
           }
           to {
             opacity: 1;
@@ -556,67 +726,91 @@ export default function GameBoard({ gameState }) {
         }
 
         .rules-tooltip-header {
-          font-size: 1.1rem;
-          font-weight: bold;
-          color: #4caf50;
-          margin-bottom: 15px;
-          text-align: center;
-          border-bottom: 2px solid rgba(76, 175, 80, 0.2);
-          padding-bottom: 10px;
+          font-size: 1rem;
+          font-weight: 600;
+          color: #1f2937;
+          margin-bottom: 16px;
+          text-align: left;
+          border-bottom: 1px solid #f3f4f6;
+          padding-bottom: 8px;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .rules-tooltip-header {
+          color: #f9fafb;
+          border-bottom-color: #4b5563;
         }
 
         .rules-list {
-          margin-bottom: 15px;
+          margin-bottom: 16px;
         }
 
         .rule-line {
           display: flex;
           align-items: flex-start;
-          gap: 10px;
-          margin-bottom: 8px;
-          padding: 8px;
-          background: rgba(76, 175, 80, 0.05);
-          border-radius: 8px;
+          gap: 12px;
+          margin-bottom: 10px;
+          padding: 8px 0;
         }
 
         .rule-number {
-          background: #4caf50;
+          background: #1f2937;
           color: white;
-          width: 20px;
-          height: 20px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.8rem;
-          font-weight: bold;
+          font-size: 0.75rem;
+          font-weight: 500;
           flex-shrink: 0;
+          transition: background-color 0.3s ease;
+        }
+
+        .game-arena.dark .rule-number {
+          background: #6b7280;
         }
 
         .rule-desc {
-          color: #333;
+          color: #4b5563;
           font-size: 0.9rem;
           line-height: 1.4;
+          transition: color 0.3s ease;
+        }
+
+        .game-arena.dark .rule-desc {
+          color: #d1d5db;
         }
 
         .rules-tip {
-          background: linear-gradient(45deg, #ff9800, #ffc107);
-          color: white;
-          padding: 10px;
-          border-radius: 8px;
+          background: #f9fafb;
+          color: #4b5563;
+          padding: 12px;
+          border-radius: 6px;
           font-size: 0.85rem;
-          text-align: center;
-          line-height: 1.3;
+          text-align: left;
+          line-height: 1.4;
+          border-left: 3px solid #e5e7eb;
+          transition: all 0.3s ease;
+        }
+
+        .game-arena.dark .rules-tip {
+          background: #2d3748;
+          color: #d1d5db;
+          border-left-color: #4b5563;
         }
 
         /* Responsive design */
         @media (max-width: 768px) {
           .game-arena {
             flex-direction: column;
+            padding: 16px;
           }
           
           .player-arena {
             grid-template-columns: 1fr;
+            grid-template-rows: auto;
             gap: 15px;
           }
           
