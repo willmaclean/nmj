@@ -385,6 +385,18 @@ export default function Home() {
           color: #9ca3af;
         }
 
+        .start-card h3 {
+          color: #1f2937;
+          font-size: 1.25rem;
+          margin: 0 0 20px 0;
+          font-weight: 600;
+          transition: color 0.3s ease;
+        }
+
+        .app-container.dark .start-card h3 {
+          color: #f9fafb;
+        }
+
         .rules-section {
           background: #f9fafb;
           border-radius: 8px;
