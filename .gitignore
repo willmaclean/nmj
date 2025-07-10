@@ -1,16 +1,36 @@
+# Dependencies
 node_modules/
-.envrc
+venv/
+__pycache__/
+
+# Environment files
 .env
 .env.local
+.env*.local
+
+# Build outputs
 .next/
-.vercel
-__pycache__/
-venv/
-*.pyc
 dist/
 build/
+
+# Deployment
+.vercel
+
+# Logs
 *.log
+
+# OS files
 .DS_Store
+.envrc
+
+# Editor files
 *.swp
 *.swo
 *~
+
+# Python
+*.pyc
+
+# Temporary files
+backend.log
+frontend.log

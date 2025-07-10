@@ -2,11 +2,24 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uuid
+import logging
 from dotenv import load_dotenv
-from .agents import GameOrchestrator
 
-# Load local environment variables from .env file for locl development
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables (development only - production uses system env vars)
 load_dotenv()
+
+logger.info("Starting FastAPI application...")
+
+try:
+    from .agents import GameOrchestrator
+    logger.info("Successfully imported GameOrchestrator")
+except Exception as e:
+    logger.error(f"Failed to import GameOrchestrator: {str(e)}")
+    raise
 
 app = FastAPI()
 
@@ -14,10 +27,21 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,  # Cannot be True with allow_origins=["*"]
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Health check endpoints
+@app.get("/")
+async def root():
+    """Root endpoint for health check"""
+    return {"message": "FastAPI backend is running", "status": "healthy"}
+
+@app.get("/api/health")
+async def health_check():
+    """API health check endpoint"""
+    return {"message": "API is healthy", "status": "ok"}
 
 # Simple in-memory game storage
 games = {}
@@ -37,33 +61,54 @@ class HumanMoveRequest(BaseModel):
 @app.post("/api/game/create")
 async def create_game(request: CreateGameRequest = CreateGameRequest()):
     """Create a new game instance"""
-    game_id = str(uuid.uuid4())
-    # Create game orchestrator
-    orchestrator = GameOrchestrator(
-        human_player_name=request.human_player_name
-    )
-    orchestrator.game_state.game_id = game_id
+    logger.info(f"Creating new game with human player: {request.human_player_name}")
     
-    games[game_id] = orchestrator
-    
-    return {
-        "game_id": game_id,
-        "game_state": orchestrator.game_state.to_dict(),
-        "has_human": orchestrator.has_human
-    }
+    try:
+        game_id = str(uuid.uuid4())
+        logger.info(f"Generated game ID: {game_id}")
+        
+        # Create game orchestrator
+        orchestrator = GameOrchestrator(
+            human_player_name=request.human_player_name
+        )
+        orchestrator.game_state.game_id = game_id
+        
+        games[game_id] = orchestrator
+        logger.info(f"Successfully created game {game_id}")
+        
+        return {
+            "game_id": game_id,
+            "game_state": orchestrator.game_state.to_dict(),
+            "has_human": orchestrator.has_human
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create game: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create game: {str(e)}")
 
 @app.post("/api/game/turn")
 async def play_turn(action: GameAction):
     """Play one turn of the game"""
-    if action.game_id not in games:
-        raise HTTPException(status_code=404, detail="Game not found")
+    logger.info(f"Playing turn for game {action.game_id}")
     
-    orchestrator = games[action.game_id]
-    
-    # Play turn using orchestrator
-    result = orchestrator.play_turn()
-    
-    return result
+    try:
+        if action.game_id not in games:
+            logger.error(f"Game {action.game_id} not found")
+            raise HTTPException(status_code=404, detail="Game not found")
+        
+        orchestrator = games[action.game_id]
+        
+        # Play turn using orchestrator
+        result = orchestrator.play_turn()
+        logger.info(f"Successfully played turn for game {action.game_id}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to play turn for game {action.game_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to play turn: {str(e)}")
 
 @app.get("/api/game/{game_id}/state")
 async def get_game_state(game_id: str):
@@ -93,5 +138,4 @@ async def make_human_move(request: HumanMoveRequest):
     
     return result
 
-# For Vercel
-handler = app
+# FastAPI app is automatically detected by Vercel for ASGI deployment

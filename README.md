@@ -7,7 +7,25 @@ Multi-LLM No More Jockeys game implementation with separate backend and frontend
 - **Backend**: FastAPI Python application (`/backend`)
 - **Frontend**: Next.js React application (`/frontend`)
 
+## Quick Start
+
+```bash
+cp .env.example .env
+# Add your ANTHROPIC_API_KEY to .env
+./dev-local.sh
+```
+
 ## Development
+
+### Development Modes
+
+```bash
+./dev-local.sh      # Frontend + Backend locally
+./dev-hybrid.sh     # Frontend local → Production backend  
+./dev-backend.sh    # Backend only
+```
+
+### Alternative Development Commands
 
 ```bash
 # Install dependencies and start both services
@@ -16,6 +34,15 @@ npm run dev
 # Or start individually:
 npm run dev:backend  # Starts on http://localhost:8000
 npm run dev:frontend # Starts on http://localhost:3000
+```
+
+### Environment
+
+Edit `.env`:
+```bash
+ANTHROPIC_API_KEY=your_api_key_here
+HELICONE_API_KEY=optional_monitoring_key  # Optional - adds observability
+# NEXT_PUBLIC_API_URL=optional_override
 ```
 
 ## Deployment
@@ -58,15 +85,16 @@ This project uses GitHub Actions to automatically deploy to Vercel when changes 
 
 For production deployments, set these in your Vercel project settings:
 
+**Backend**:
+- `ANTHROPIC_API_KEY`: Your Anthropic API key (required)
+- `HELICONE_API_KEY`: Your Helicone API key (required in production)
+
 **Frontend**:
 - `NEXT_PUBLIC_API_URL`: Your backend Vercel URL
 
-**Backend**:
-- `ANTHROPIC_API_KEY`: Your Anthropic API key (if using AI features)
-
 ## Game Rules
 
-No More Jockeys is a game where players take turns naming a person and a category that person has never been. The challenge is to avoid categories that have already been "banned" by previous players.
+No More Jockeys is a game where players take turns naming a person and a category that person belongs to. That category becomes banned. Don't name anyone from banned categories or you're eliminated.
 
 ## Tech Stack
 
