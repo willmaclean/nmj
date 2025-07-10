@@ -4,7 +4,6 @@ from pydantic import BaseModel
 import uuid
 import logging
 from dotenv import load_dotenv
-from mangum import Mangum
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,10 +27,21 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,  # Cannot be True with allow_origins=["*"]
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Health check endpoints
+@app.get("/")
+async def root():
+    """Root endpoint for health check"""
+    return {"message": "FastAPI backend is running", "status": "healthy"}
+
+@app.get("/api/health")
+async def health_check():
+    """API health check endpoint"""
+    return {"message": "API is healthy", "status": "ok"}
 
 # Simple in-memory game storage
 games = {}
@@ -128,9 +138,4 @@ async def make_human_move(request: HumanMoveRequest):
     
     return result
 
-# Create Mangum handler for Vercel/Lambda deployment
-handler = Mangum(app, lifespan="off")
-
-# Also export the FastAPI app for local development
-# Export both for maximum compatibility
-application = app
+# FastAPI app is automatically detected by Vercel for ASGI deployment
