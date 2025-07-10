@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import GameBoard from '../components/GameBoard';
 
 export default function Home() {
@@ -158,6 +159,11 @@ export default function Home() {
       </div>
 
       <header className="app-header">
+        <nav className="header-nav">
+          <Link href="/about">
+            <a className="about-link">About</a>
+          </Link>
+        </nav>
         <h1>No More Jockeys - AI Battle</h1>
         <p>Watch AI agents compete or join the battle yourself!</p>
       </header>
@@ -344,6 +350,7 @@ export default function Home() {
           background: #ffffff;
           border-bottom: 1px solid #f3f4f6;
           transition: all 0.3s ease;
+          position: relative;
         }
 
         .app-container.dark .app-header {
@@ -373,6 +380,33 @@ export default function Home() {
 
         .app-container.dark .app-header p {
           color: #9ca3af;
+        }
+
+        .header-nav {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+        }
+
+        .about-link {
+          color: #0066cc;
+          text-decoration: none;
+          font-size: 1rem;
+          font-weight: 500;
+          transition: color 0.2s;
+        }
+
+        .about-link:hover {
+          color: #0052cc;
+          text-decoration: underline;
+        }
+
+        .app-container.dark .about-link {
+          color: #66b3ff;
+        }
+
+        .app-container.dark .about-link:hover {
+          color: #99ccff;
         }
 
         .start-screen {
