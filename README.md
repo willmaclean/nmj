@@ -41,7 +41,7 @@ npm run dev:frontend # Starts on http://localhost:3000
 Edit `.env`:
 ```bash
 ANTHROPIC_API_KEY=your_api_key_here
-HELICONE_API_KEY=optional_monitoring_key  # Optional - adds observability
+HELICONE_API_KEY=your_helicone_key_here  # Required in production
 # NEXT_PUBLIC_API_URL=optional_override
 ```
 
@@ -87,7 +87,7 @@ For production deployments, set these in your Vercel project settings:
 
 **Backend**:
 - `ANTHROPIC_API_KEY`: Your Anthropic API key (required)
-- `HELICONE_API_KEY`: Your Helicone API key (required in production)
+- `HELICONE_API_KEY`: Your Helicone API key (required in production for monitoring)
 
 **Frontend**:
 - `NEXT_PUBLIC_API_URL`: Your backend Vercel URL
