@@ -127,5 +127,4 @@ async def make_human_move(request: HumanMoveRequest):
     
     return result
 
-# For Vercel
-handler = app
+# FastAPI app instance exported for Vercel ASGI deployment
