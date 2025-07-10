@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import uuid
 import logging
 from dotenv import load_dotenv
+from mangum import Mangum
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -127,4 +128,9 @@ async def make_human_move(request: HumanMoveRequest):
     
     return result
 
-# FastAPI app instance exported for Vercel ASGI deployment
+# Create Mangum handler for Vercel/Lambda deployment
+handler = Mangum(app, lifespan="off")
+
+# Also export the FastAPI app for local development
+# Export both for maximum compatibility
+application = app
