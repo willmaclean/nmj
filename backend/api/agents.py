@@ -46,8 +46,14 @@ class JockeyAgent:
         self.llm = ChatAnthropic(
             model=model_name,
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
+            anthropic_api_url="https://api.helicone.ai/v1",
             temperature=0.7,
-            max_tokens=200
+            max_tokens=200,
+            default_headers={
+                "Helicone-Auth": f"Bearer {os.environ.get('HELICONE_API_KEY')}",
+                "Helicone-Property-App": "no-more-jockeys",
+                "Helicone-Property-Player": f"player-{player_id}"
+            }
         )
         self.system_prompt = PLAYER_SYSTEM_PROMPT.format(player_id=player_id)
     
@@ -107,8 +113,14 @@ class ValidatorAgent:
         self.llm = ChatAnthropic(
             model=model_name,
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
+            anthropic_api_url="https://api.helicone.ai/v1",
             temperature=0.1,  # Low temperature for consistency
-            max_tokens=300
+            max_tokens=300,
+            default_headers={
+                "Helicone-Auth": f"Bearer {os.environ.get('HELICONE_API_KEY')}",
+                "Helicone-Property-App": "no-more-jockeys",
+                "Helicone-Property-Role": "validator"
+            }
         )
     
     def get_person_info(self, person: str) -> dict:
