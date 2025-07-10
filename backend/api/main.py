@@ -27,12 +27,12 @@ if missing_vars:
 
 app = FastAPI()
 
-# CORS for local development
+# CORS configuration - allow all Vercel domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now
+    allow_origins=["*"],  # Allow all origins for Vercel deployments
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
