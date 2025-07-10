@@ -2,9 +2,11 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 import json
 import os
+import logging
 from typing import Dict, List, Optional
 from enum import Enum
 from dataclasses import dataclass
+from datetime import datetime
 from .prompts import (
     PLAYER_SYSTEM_PROMPT,
     PLAYER_TURN_PROMPT,
@@ -13,7 +15,10 @@ from .prompts import (
     VALIDATOR_SYSTEM_PROMPT
 )
 from .game_state import GameState, Move, Player
-from datetime import datetime
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Environment(Enum):
@@ -55,39 +60,57 @@ class LLMClientFactory:
         player_id: Optional[int] = None
     ) -> ChatAnthropic:
         """Create ChatAnthropic client with environment-appropriate configuration."""
+        logger.info(f"Creating LLM client for role: {role}, player: {player_id}")
+        
         anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not anthropic_api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable is required")
-        
-        is_production = ProductionDetector.is_production()
         helicone_key = os.environ.get('HELICONE_API_KEY')
+        is_production = ProductionDetector.is_production()
         
-        # Production: Helicone required
-        if is_production:
-            if not helicone_key or helicone_key == 'your_helicone_key_here':
-                raise ValueError(
-                    "HELICONE_API_KEY is required in production environment. "
-                    "Please set it in your deployment environment variables."
+        logger.info(f"Environment check - Production: {is_production}")
+        logger.info(f"API Keys - Anthropic: {'SET' if anthropic_api_key else 'MISSING'}, "
+                   f"Helicone: {'SET' if helicone_key else 'MISSING'}")
+        
+        if not anthropic_api_key:
+            error_msg = "ANTHROPIC_API_KEY environment variable is required"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        
+        try:
+            # Production: Helicone required
+            if is_production:
+                logger.info("Production mode: Helicone monitoring required")
+                if not helicone_key or helicone_key == 'your_helicone_key_here':
+                    error_msg = "HELICONE_API_KEY is required in production environment"
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
+                
+                logger.info("Creating Helicone-enabled client for production")
+                return LLMClientFactory._create_helicone_client(
+                    model_name, temperature, max_tokens, anthropic_api_key, 
+                    helicone_key, role, player_id
                 )
-            return LLMClientFactory._create_helicone_client(
-                model_name, temperature, max_tokens, anthropic_api_key, 
-                helicone_key, role, player_id
+            
+            # Development: Helicone optional
+            if helicone_key and helicone_key != 'your_helicone_key_here':
+                logger.info("Development mode: Using Helicone monitoring")
+                return LLMClientFactory._create_helicone_client(
+                    model_name, temperature, max_tokens, anthropic_api_key,
+                    helicone_key, role, player_id
+                )
+            
+            # Development: Direct Anthropic API
+            logger.info("Development mode: Using direct Anthropic API")
+            return ChatAnthropic(
+                model=model_name,
+                anthropic_api_key=anthropic_api_key,
+                temperature=temperature,
+                max_tokens=max_tokens
             )
-        
-        # Development: Helicone optional
-        if helicone_key and helicone_key != 'your_helicone_key_here':
-            return LLMClientFactory._create_helicone_client(
-                model_name, temperature, max_tokens, anthropic_api_key,
-                helicone_key, role, player_id
-            )
-        
-        # Development: Direct Anthropic API
-        return ChatAnthropic(
-            model=model_name,
-            anthropic_api_key=anthropic_api_key,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
+            
+        except Exception as e:
+            logger.error(f"Failed to create LLM client: {str(e)}")
+            logger.error(f"Environment: {dict(os.environ)}")
+            raise
     
     @staticmethod
     def _create_helicone_client(
@@ -157,15 +180,22 @@ class JockeyAgent:
     
     def __init__(self, player_id: int, model_name: str = "claude-3-5-sonnet-20241022"):
         """Initialize the jockey agent with LLM client and system prompt."""
-        self.player_id = player_id
-        self.llm = LLMClientFactory.create_anthropic_client(
-            model_name=model_name,
-            temperature=0.7,
-            max_tokens=200,
-            role="player",
-            player_id=player_id
-        )
-        self.system_prompt = PLAYER_SYSTEM_PROMPT.format(player_id=player_id)
+        logger.info(f"Initializing JockeyAgent for player {player_id}")
+        
+        try:
+            self.player_id = player_id
+            self.llm = LLMClientFactory.create_anthropic_client(
+                model_name=model_name,
+                temperature=0.7,
+                max_tokens=200,
+                role="player",
+                player_id=player_id
+            )
+            self.system_prompt = PLAYER_SYSTEM_PROMPT.format(player_id=player_id)
+            logger.info(f"Successfully initialized JockeyAgent for player {player_id}")
+        except Exception as e:
+            logger.error(f"Failed to initialize JockeyAgent for player {player_id}: {str(e)}")
+            raise
     
     def take_turn(self, game_state: GameState, feedback: str = None) -> dict:
         """Generate a move based on current game state.
@@ -223,12 +253,19 @@ class ValidatorAgent:
     
     def __init__(self, model_name: str = "claude-3-5-sonnet-20241022"):
         """Initialize the validator agent with LLM client."""
-        self.llm = LLMClientFactory.create_anthropic_client(
-            model_name=model_name,
-            temperature=0.1,  # Low temperature for consistency
-            max_tokens=300,
-            role="validator"
-        )
+        logger.info("Initializing ValidatorAgent")
+        
+        try:
+            self.llm = LLMClientFactory.create_anthropic_client(
+                model_name=model_name,
+                temperature=0.1,  # Low temperature for consistency
+                max_tokens=300,
+                role="validator"
+            )
+            logger.info("Successfully initialized ValidatorAgent")
+        except Exception as e:
+            logger.error(f"Failed to initialize ValidatorAgent: {str(e)}")
+            raise
     
     def get_person_info(self, person: str) -> dict:
         """Get comprehensive info about a person"""
@@ -289,38 +326,48 @@ class GameOrchestrator:
             human_player_name: Name of human player, if any
             ai_retry_attempts: Number of retry attempts for AI players when invalid moves are made
         """
-        self.human_player_name = human_player_name
-        self.has_human = human_player_name is not None
-        self.ai_retry_attempts = ai_retry_attempts  # Number of retry attempts for AI players
+        logger.info(f"Initializing GameOrchestrator with human player: {human_player_name}")
         
-        if self.has_human:
-            # Human is player 1, AI agents are 2-4
-            self.agents = {
-                i: JockeyAgent(player_id=i) for i in range(2, 5)
-            }
-            self.game_state = GameState(
-                players=[
-                    Player(id=1, name=human_player_name, is_human=True),
-                    Player(id=2, name="Claude-2", is_human=False),
-                    Player(id=3, name="Claude-3", is_human=False),
-                    Player(id=4, name="Claude-4", is_human=False)
-                ],
-                banned_categories=[],
-                moves=[]
-            )
-        else:
-            # All AI agents
-            self.agents = {
-                i: JockeyAgent(player_id=i) for i in range(1, 5)
-            }
-            self.game_state = GameState(
-                players=[Player(id=i, name=f"Claude-{i}", is_human=False) for i in range(1, 5)],
-                banned_categories=[],
-                moves=[]
-            )
-        
-        self.validator = ValidatorAgent()
-        self.pending_human_turn = False
+        try:
+            self.human_player_name = human_player_name
+            self.has_human = human_player_name is not None
+            self.ai_retry_attempts = ai_retry_attempts  # Number of retry attempts for AI players
+            
+            if self.has_human:
+                logger.info("Setting up game with human player")
+                # Human is player 1, AI agents are 2-4
+                self.agents = {
+                    i: JockeyAgent(player_id=i) for i in range(2, 5)
+                }
+                self.game_state = GameState(
+                    players=[
+                        Player(id=1, name=human_player_name, is_human=True),
+                        Player(id=2, name="Claude-2", is_human=False),
+                        Player(id=3, name="Claude-3", is_human=False),
+                        Player(id=4, name="Claude-4", is_human=False)
+                    ],
+                    banned_categories=[],
+                    moves=[]
+                )
+            else:
+                logger.info("Setting up AI-only game")
+                # All AI agents
+                self.agents = {
+                    i: JockeyAgent(player_id=i) for i in range(1, 5)
+                }
+                self.game_state = GameState(
+                    players=[Player(id=i, name=f"Claude-{i}", is_human=False) for i in range(1, 5)],
+                    banned_categories=[],
+                    moves=[]
+                )
+            
+            self.validator = ValidatorAgent()
+            self.pending_human_turn = False
+            logger.info("Successfully initialized GameOrchestrator")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize GameOrchestrator: {str(e)}")
+            raise
     
     def play_turn(self, human_move: dict = None) -> dict:
         """Execute one turn of the game"""
