@@ -14,7 +14,7 @@ export default function Home() {
   const [humanMove, setHumanMove] = useState({ person: '', category: '' });
   const [darkMode, setDarkMode] = useState(false);
 
-  // Force fresh deployment
+  // Force fresh deployment - trigger rebuild
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-pu7w8cumu-set4.vercel.app';
 
   const createGame = async (withHuman = false, playerName = '') => {
