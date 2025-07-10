@@ -76,13 +76,20 @@ class LLMClientFactory:
             raise ValueError(error_msg)
         
         try:
-            # Production: Helicone required
+            # Production: Helicone optional for now (with warning)
             if is_production:
-                logger.info("Production mode: Helicone monitoring required")
+                logger.info("Production mode: Helicone monitoring recommended")
                 if not helicone_key or helicone_key == 'your_helicone_key_here':
-                    error_msg = "HELICONE_API_KEY is required in production environment"
-                    logger.error(error_msg)
-                    raise ValueError(error_msg)
+                    logger.warning("HELICONE_API_KEY not set in production - monitoring disabled")
+                    logger.warning("For better observability, consider setting HELICONE_API_KEY")
+                    # Fall back to direct Anthropic API
+                    logger.info("Using direct Anthropic API in production (no monitoring)")
+                    return ChatAnthropic(
+                        model=model_name,
+                        anthropic_api_key=anthropic_api_key,
+                        temperature=temperature,
+                        max_tokens=max_tokens
+                    )
                 
                 logger.info("Creating Helicone-enabled client for production")
                 return LLMClientFactory._create_helicone_client(

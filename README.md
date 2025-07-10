@@ -41,7 +41,7 @@ npm run dev:frontend # Starts on http://localhost:3000
 Edit `.env`:
 ```bash
 ANTHROPIC_API_KEY=your_api_key_here
-HELICONE_API_KEY=optional_dev_key  # Required in production
+HELICONE_API_KEY=optional_monitoring_key  # Optional - adds observability
 # NEXT_PUBLIC_API_URL=optional_override
 ```
 
