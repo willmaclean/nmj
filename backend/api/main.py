@@ -2,7 +2,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uuid
+from dotenv import load_dotenv
 from .agents import GameOrchestrator
+
+# Load local environment variables from .env file for locl development
+load_dotenv()
 
 app = FastAPI()
 
