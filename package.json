@@ -6,6 +6,7 @@
     "dev": "npm run install:check && concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
     "dev:backend": "cd backend && (test -d venv || python3 -m venv venv) && (. venv/bin/activate && pip install -q -r requirements.txt && uvicorn api.main:app --reload --port 8000)",
     "dev:frontend": "cd frontend && (test -d node_modules || npm install) && npm run dev",
+    "dev:frontend-prod": "cd frontend && (test -d node_modules || npm install) && NEXT_PUBLIC_API_URL=https://backend-pu7w8cumu-set4.vercel.app npm run dev",
     "install": "npm-run-all install:backend install:frontend",
     "install:check": "npm run install:backend:check && npm run install:frontend:check",
     "install:backend": "cd backend && python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt",

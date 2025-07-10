@@ -4,9 +4,7 @@ export default function About() {
   return (
     <div className="container">
       <nav className="nav">
-        <Link href="/">
-          <a className="nav-link">← Back to Game</a>
-        </Link>
+        <Link href="/" className="nav-link">← Back to Game</Link>
       </nav>
 
       <main className="main">

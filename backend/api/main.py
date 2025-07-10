@@ -5,7 +5,7 @@ import uuid
 from dotenv import load_dotenv
 from .agents import GameOrchestrator
 
-# Load local environment variables from .env file for locl development
+# Load environment variables (development only - production uses system env vars)
 load_dotenv()
 
 app = FastAPI()

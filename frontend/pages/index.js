@@ -14,18 +14,35 @@ export default function Home() {
   const [humanMove, setHumanMove] = useState({ person: '', category: '' });
   const [darkMode, setDarkMode] = useState(false);
 
-  // Force fresh deployment - trigger rebuild
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend-pu7w8cumu-set4.vercel.app';
+  // API URL configuration based on environment
+  const getApiUrl = () => {
+    // 1. Explicit override via environment variable (highest priority)
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      return process.env.NEXT_PUBLIC_API_URL;
+    }
+    
+    // 2. Auto-detect based on NODE_ENV
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://backend-pu7w8cumu-set4.vercel.app';
+    }
+    
+    // 3. Default to local development
+    return 'http://localhost:8000';
+  };
+  
+  const API_URL = getApiUrl();
 
   const createGame = async (withHuman = false, playerName = '') => {
     setLoading(true);
     try {
+      const requestBody = withHuman 
+        ? { human_player_name: playerName || 'You' }
+        : {};
+        
       const res = await fetch(`${API_URL}/api/game/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          human_player_name: withHuman ? (playerName || 'You') : null
-        }),
+        body: JSON.stringify(requestBody),
       });
       const data = await res.json();
       
@@ -160,9 +177,7 @@ export default function Home() {
 
       <header className="app-header">
         <nav className="header-nav">
-          <Link href="/about">
-            <a className="about-link">About</a>
-          </Link>
+          <Link href="/about" className="about-link">About</Link>
         </nav>
         <h1>No More Jockeys - AI Battle</h1>
         <p>Watch AI agents compete or join the battle yourself!</p>
