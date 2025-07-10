@@ -23,7 +23,7 @@ export default function Home() {
     
     // 2. Auto-detect based on NODE_ENV
     if (process.env.NODE_ENV === 'production') {
-      return 'https://backend-pu7w8cumu-set4.vercel.app';
+      return 'https://backend-set4.vercel.app';
     }
     
     // 3. Default to local development
